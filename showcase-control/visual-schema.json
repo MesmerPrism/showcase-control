@@ -1,0 +1,681 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Private showcase complete visual snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "visual_scale",
+    "radius",
+    "size",
+    "world_anchor_scale_m",
+    "driver_values01",
+    "driver_controls",
+    "tracer",
+    "transparency",
+    "color",
+    "material",
+    "orbit_distance",
+    "frame_extension"
+  ],
+  "properties": {
+    "radius": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_m", "maximum_m"],
+      "properties": {
+        "minimum_m": {"type": "number", "minimum": 0.05, "maximum": 4.0},
+        "maximum_m": {"type": "number", "minimum": 0.05, "maximum": 4.0}
+      }
+    },
+    "visual_scale": {
+      "type": "number",
+      "minimum": 0.05,
+      "maximum": 1
+    },
+    "size": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "mode",
+        "world_meters",
+        "sphere_radius_percent",
+        "oscillation_percent"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "mode": {
+          "enum": [
+            "legacy-payload-envelope",
+            "sphere-radius-percent",
+            "world-meters"
+          ]
+        },
+        "world_meters": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 0.5
+        },
+        "sphere_radius_percent": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 50
+        },
+        "oscillation_percent": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 90
+        }
+      }
+    },
+    "world_anchor_scale_m": {
+      "type": "number",
+      "minimum": 0.05,
+      "maximum": 4
+    },
+    "driver_values01": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "driver_controls": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "prefixItems": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_slot",
+            "mode",
+            "source_slot",
+            "curve",
+            "range_min",
+            "range_max",
+            "cycle_multiplier"
+          ],
+          "properties": {
+            "target_slot": {
+              "const": 0
+            },
+            "mode": {
+              "enum": [
+                "oscillator",
+                "manual",
+                "input-slot",
+                "direct"
+              ]
+            },
+            "source_slot": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "curve": {
+              "enum": [
+                "linear",
+                "hump",
+                "smoothstep",
+                "reverse-linear",
+                "hold-low",
+                "hold-high"
+              ]
+            },
+            "range_min": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "range_max": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "cycle_multiplier": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_slot",
+            "mode",
+            "source_slot",
+            "curve",
+            "range_min",
+            "range_max",
+            "cycle_multiplier"
+          ],
+          "properties": {
+            "target_slot": {
+              "const": 1
+            },
+            "mode": {
+              "enum": [
+                "oscillator",
+                "manual",
+                "input-slot",
+                "direct"
+              ]
+            },
+            "source_slot": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "curve": {
+              "enum": [
+                "linear",
+                "hump",
+                "smoothstep",
+                "reverse-linear",
+                "hold-low",
+                "hold-high"
+              ]
+            },
+            "range_min": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "range_max": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "cycle_multiplier": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_slot",
+            "mode",
+            "source_slot",
+            "curve",
+            "range_min",
+            "range_max",
+            "cycle_multiplier"
+          ],
+          "properties": {
+            "target_slot": {
+              "const": 2
+            },
+            "mode": {
+              "enum": [
+                "oscillator",
+                "manual",
+                "input-slot",
+                "direct"
+              ]
+            },
+            "source_slot": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "curve": {
+              "enum": [
+                "linear",
+                "hump",
+                "smoothstep",
+                "reverse-linear",
+                "hold-low",
+                "hold-high"
+              ]
+            },
+            "range_min": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "range_max": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "cycle_multiplier": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_slot",
+            "mode",
+            "source_slot",
+            "curve",
+            "range_min",
+            "range_max",
+            "cycle_multiplier"
+          ],
+          "properties": {
+            "target_slot": {
+              "const": 3
+            },
+            "mode": {
+              "enum": [
+                "oscillator",
+                "manual",
+                "input-slot",
+                "direct"
+              ]
+            },
+            "source_slot": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "curve": {
+              "enum": [
+                "linear",
+                "hump",
+                "smoothstep",
+                "reverse-linear",
+                "hold-low",
+                "hold-high"
+              ]
+            },
+            "range_min": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "range_max": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "cycle_multiplier": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_slot",
+            "mode",
+            "source_slot",
+            "curve",
+            "range_min",
+            "range_max",
+            "cycle_multiplier"
+          ],
+          "properties": {
+            "target_slot": {
+              "const": 4
+            },
+            "mode": {
+              "enum": [
+                "oscillator",
+                "manual",
+                "input-slot",
+                "direct"
+              ]
+            },
+            "source_slot": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "curve": {
+              "enum": [
+                "linear",
+                "hump",
+                "smoothstep",
+                "reverse-linear",
+                "hold-low",
+                "hold-high"
+              ]
+            },
+            "range_min": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "range_max": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "cycle_multiplier": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_slot",
+            "mode",
+            "source_slot",
+            "curve",
+            "range_min",
+            "range_max",
+            "cycle_multiplier"
+          ],
+          "properties": {
+            "target_slot": {
+              "const": 5
+            },
+            "mode": {
+              "enum": [
+                "oscillator",
+                "manual",
+                "input-slot",
+                "direct"
+              ]
+            },
+            "source_slot": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "curve": {
+              "enum": [
+                "linear",
+                "hump",
+                "smoothstep",
+                "reverse-linear",
+                "hold-low",
+                "hold-high"
+              ]
+            },
+            "range_min": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "range_max": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "cycle_multiplier": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_slot",
+            "mode",
+            "source_slot",
+            "curve",
+            "range_min",
+            "range_max",
+            "cycle_multiplier"
+          ],
+          "properties": {
+            "target_slot": {
+              "const": 6
+            },
+            "mode": {
+              "enum": [
+                "oscillator",
+                "manual",
+                "input-slot",
+                "direct"
+              ]
+            },
+            "source_slot": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "curve": {
+              "enum": [
+                "linear",
+                "hump",
+                "smoothstep",
+                "reverse-linear",
+                "hold-low",
+                "hold-high"
+              ]
+            },
+            "range_min": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "range_max": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "cycle_multiplier": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_slot",
+            "mode",
+            "source_slot",
+            "curve",
+            "range_min",
+            "range_max",
+            "cycle_multiplier"
+          ],
+          "properties": {
+            "target_slot": {
+              "const": 7
+            },
+            "mode": {
+              "enum": [
+                "oscillator",
+                "manual",
+                "input-slot",
+                "direct"
+              ]
+            },
+            "source_slot": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 7
+            },
+            "curve": {
+              "enum": [
+                "linear",
+                "hump",
+                "smoothstep",
+                "reverse-linear",
+                "hold-low",
+                "hold-high"
+              ]
+            },
+            "range_min": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "range_max": {
+              "type": "number",
+              "minimum": -1000,
+              "maximum": 1000
+            },
+            "cycle_multiplier": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10
+            }
+          }
+        }
+      ],
+      "items": false
+    },
+    "tracer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "draw_slots_per_oscillator",
+        "lifetime_seconds",
+        "copies_per_second"
+      ],
+      "properties": {
+        "draw_slots_per_oscillator": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7
+        },
+        "lifetime_seconds": {
+          "type": "number",
+          "minimum": 0.016,
+          "maximum": 30
+        },
+        "copies_per_second": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120
+        }
+      }
+    },
+    "transparency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "opacity",
+        "output_alpha_scale",
+        "depth_suppression_strength",
+        "rgb_alpha_coupling"
+      ],
+      "properties": {
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "output_alpha_scale": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "depth_suppression_strength": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "rgb_alpha_coupling": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "color": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "facing_attenuation_strength"
+      ],
+      "properties": {
+        "facing_attenuation_strength": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preset"
+      ],
+      "properties": {
+        "preset": {
+          "enum": [
+            "packaged-default",
+            "current-additive",
+            "premultiplied-alpha-over",
+            "premultiplied-alpha-over-depth",
+            "premultiplied-alpha-over-depth-facing",
+            "reference-material-emulation"
+          ]
+        }
+      }
+    },
+    "orbit_distance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scale_with_particle_size",
+        "reference_radius_m"
+      ],
+      "properties": {
+        "scale_with_particle_size": {
+          "type": "boolean"
+        },
+        "reference_radius_m": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 0.25
+        }
+      }
+    },
+    "frame_extension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "endpoint_gain",
+        "midpoint_gain"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "constant",
+            "radius"
+          ]
+        },
+        "endpoint_gain": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "midpoint_gain": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 8
+        }
+      }
+    }
+  }
+}

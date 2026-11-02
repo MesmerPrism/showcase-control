@@ -1,0 +1,125 @@
+{
+  "visual_scale": 0.7,
+  "radius": {
+    "minimum_m": 1.0,
+    "maximum_m": 2.0
+  },
+  "size": {
+    "enabled": true,
+    "mode": "sphere-radius-percent",
+    "world_meters": 0.05,
+    "sphere_radius_percent": 3,
+    "oscillation_percent": 50
+  },
+  "world_anchor_scale_m": 0.46,
+  "driver_values01": [
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "driver_controls": [
+    {
+      "target_slot": 0,
+      "mode": "direct",
+      "source_slot": 0,
+      "curve": "linear",
+      "range_min": 0,
+      "range_max": 1,
+      "cycle_multiplier": 1
+    },
+    {
+      "target_slot": 1,
+      "mode": "direct",
+      "source_slot": 1,
+      "curve": "linear",
+      "range_min": 0,
+      "range_max": 1,
+      "cycle_multiplier": 1
+    },
+    {
+      "target_slot": 2,
+      "mode": "direct",
+      "source_slot": 2,
+      "curve": "linear",
+      "range_min": 0.04,
+      "range_max": 0.115,
+      "cycle_multiplier": 1
+    },
+    {
+      "target_slot": 3,
+      "mode": "oscillator",
+      "source_slot": 3,
+      "curve": "hump",
+      "range_min": 0,
+      "range_max": 0.05,
+      "cycle_multiplier": 1
+    },
+    {
+      "target_slot": 4,
+      "mode": "direct",
+      "source_slot": 4,
+      "curve": "linear",
+      "range_min": 0.1,
+      "range_max": 0.5,
+      "cycle_multiplier": 1
+    },
+    {
+      "target_slot": 5,
+      "mode": "direct",
+      "source_slot": 5,
+      "curve": "linear",
+      "range_min": 0.2,
+      "range_max": 1.5,
+      "cycle_multiplier": 1
+    },
+    {
+      "target_slot": 6,
+      "mode": "direct",
+      "source_slot": 6,
+      "curve": "linear",
+      "range_min": 0,
+      "range_max": 6.283185307179586,
+      "cycle_multiplier": 1
+    },
+    {
+      "target_slot": 7,
+      "mode": "direct",
+      "source_slot": 7,
+      "curve": "linear",
+      "range_min": 0,
+      "range_max": 1,
+      "cycle_multiplier": 1
+    }
+  ],
+  "tracer": {
+    "draw_slots_per_oscillator": 7,
+    "lifetime_seconds": 0.5,
+    "copies_per_second": 14
+  },
+  "transparency": {
+    "opacity": 1,
+    "output_alpha_scale": 1,
+    "depth_suppression_strength": 0,
+    "rgb_alpha_coupling": 0
+  },
+  "color": {
+    "facing_attenuation_strength": 0
+  },
+  "material": {
+    "preset": "reference-material-emulation"
+  },
+  "orbit_distance": {
+    "scale_with_particle_size": false,
+    "reference_radius_m": 0.03
+  },
+  "frame_extension": {
+    "mode": "radius",
+    "endpoint_gain": 1,
+    "midpoint_gain": 0
+  }
+}
