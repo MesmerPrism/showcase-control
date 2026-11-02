@@ -102,13 +102,13 @@
     "copies_per_second": 14
   },
   "transparency": {
-    "opacity": 1,
-    "output_alpha_scale": 1,
-    "depth_suppression_strength": 0,
+    "opacity": 0.36,
+    "output_alpha_scale": 0.45,
+    "depth_suppression_strength": 1.5,
     "rgb_alpha_coupling": 0
   },
   "color": {
-    "facing_attenuation_strength": 0
+    "facing_attenuation_strength": 0.2
   },
   "material": {
     "preset": "reference-material-emulation"

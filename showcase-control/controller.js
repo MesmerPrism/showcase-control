@@ -2,14 +2,14 @@
  'use strict';
  const P=typeof module!=='undefined'?require('./protocol.js'):root.ShowcaseProtocol;
  class Controller{
-  constructor({id=()=>root.crypto.randomUUID().replaceAll('-',''),changed=()=>{}}={}){this.id=id;this.changed=changed;this.generation=0;this.ready=false;this.pending=null;this.minimumRevision=0;}
+  constructor({id=()=>root.crypto.randomUUID().replaceAll('-',''),changed=()=>{}}={}){this.id=id;this.changed=changed;this.generation=0;this.ready=false;this.pending=null;this.minimumRevision=0;this.lastReceipt=null;}
   bind(gateway,value){const next=P.status(value),sameLifetime=this.current?.epoch===next.epoch,pending=this.pending&&sameLifetime?this.pending:null;this.generation++;if(this.gateway&&this.gateway!==gateway)this.gateway.close?.();this.minimumRevision=sameLifetime?this.minimumRevision:next.revision;this.gateway=gateway;this.snapshots=new P.Snapshots();this.current=this.snapshots.accept(next);this.pending=pending;this.ready=!pending&&next.revision>=this.minimumRevision;this.changed(this);}
   close(){this.generation++;this.gateway?.close?.();this.gateway=null;this.ready=false;this.changed(this);}
   receipt(value){
    const command=this.pending;
    if(!command||!value||value.schema!==P.PREFIX+'receipt.v1'||value.product!==P.PRODUCT||value.product!==command.product||value.epoch!==command.epoch||value.epoch!==this.current.epoch||value.id!==command.id)throw Error('Untrusted command outcome; original request remains unresolved');
    if(!['accepted','rejected','pending','unknown'].includes(value.status)||!Number.isSafeInteger(value.revision)||value.revision<command.expected_revision||(['accepted','pending'].includes(value.status)&&value.revision!==command.expected_revision+1))throw Error('Invalid command outcome revision or status; original request remains unresolved');
-   if(['accepted','rejected'].includes(value.status)){this.minimumRevision=Math.max(this.minimumRevision,value.revision);this.pending=null;return value.status;}
+   if(['accepted','rejected'].includes(value.status)){this.minimumRevision=Math.max(this.minimumRevision,value.revision);this.lastReceipt={...value};this.pending=null;return value.status;}
    return 'unknown';
   }
   async send(op,payload){
