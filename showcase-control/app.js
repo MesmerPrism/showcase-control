@@ -101,7 +101,8 @@
   $('profile-inputs').textContent='Inputs remain: '+input.breath_source+' / '+input.heartbeat_source;
   $('apply-profile').textContent=drafts.dirty('visual')?'Apply selected profile · replace visual edits':'Apply selected profile';
   const calibrationUnavailable=input.breath_source==='automatic'?'Automatic breathing has no sensor calibration.':
-   input.breath_source==='controller'&&input.breath_mapping==='state'&&input.controller_projection==='fixed-orientation'?'Controller State with Fixed orientation has no calibration.':'';
+   input.breath_source==='controller'&&input.breath_mapping==='state'?(input.controller_projection==='fixed-orientation'?
+    'Controller State uses Fixed orientation without calibration.':'Controller State learns the movement direction continuously.'):'';
   $('calibration-fields').disabled=!available||!!calibrationUnavailable;
   $('calibration-fields').hidden=!!calibrationUnavailable;
   $('calibration-context').textContent=calibrationUnavailable||('Applied target: '+input.breath_source+' · '+input.breath_mapping+'. Follow the calibration instructions on the headset.');
