@@ -13,9 +13,20 @@
  function message(text=''){ $('message').textContent=text;$('message').title=text;$('message').hidden=!text; }
  function readInputs(){const fields=$('inputs-form').elements;const value=Object.fromEntries(['breath_source','breath_mapping','heartbeat_source','controller_projection','polar_projection'].map(k=>[k,fields.namedItem(k).value]));value.synthetic_bpm=Number(fields.namedItem('synthetic_bpm').value);value.inverted=fields.namedItem('inverted').checked;return value;}
  function loadInputs(inputs){for(const [key,value]of Object.entries(inputs)){const field=$('inputs-form').elements.namedItem(key);if(field)field.type==='checkbox'?field.checked=value:field.value=value;}}
- function syncDraftControls(domains=['inputs','visual']){if(!hasDraft())return;if(domains.includes('inputs'))loadInputs(drafts.value('inputs'));if(schema&&domains.includes('visual')){const visual=drafts.value('visual');if(editor)editor.replace(visual);else editor=ShowcaseForms.form($('visual-controls'),schema,visual,{presets:controller.current?.material_presets||{},change:value=>{drafts.replace('visual',value);render();}});if(visualPages.has(navigation.page))editor.show(navigation.page);}}
+ function syncDraftControls(domains=['inputs','visual']){if(!hasDraft())return;if(domains.includes('inputs'))loadInputs(drafts.value('inputs'));if(schema&&domains.includes('visual')){const visual=drafts.value('visual');if(editor)editor.replace(visual);else editor=ShowcaseForms.form($('visual-controls'),schema,visual,{presets:controller.current?.material_presets||{},change:value=>{drafts.replace('visual',value);render();},ranges:controller.current?.driver_ranges});if(visualPages.has(navigation.page))editor.show(navigation.page);}}
  function acceptedOperation(){const r=controller.lastReceipt;return originalOperation&&r?.id===originalId&&r.epoch===controller.current?.epoch&&r.status==='accepted'&&controller.current.revision>=r.revision?originalOperation:undefined;}
- function observe(accepted){if(!controller.current)return;const before=hasDraft()?{inputs:JSON.stringify(drafts.value('inputs')),visual:JSON.stringify(drafts.value('visual'))}:{};drafts.observe(controller.current,boundIdentity?.device||'unidentified',accepted);syncDraftControls(['inputs','visual'].filter(d=>before[d]!==JSON.stringify(drafts.value(d))));editor?.setPresets?.(controller.current.material_presets||{});render();}
+ function observe(accepted){
+  if(!controller.current)return;
+  const domains=['inputs','visual'];
+  const before=hasDraft()?Object.fromEntries(domains.map(d=>[d,JSON.stringify(drafts.value(d))])):{};
+  drafts.observe(controller.current,boundIdentity?.device||'unidentified',accepted);
+  // A native receipt must also refresh the visible widgets. A draft already
+  // equal to readback does not prove a mobile select still shows that value.
+  const acceptedDomain=accepted==='set-inputs'?'inputs':['apply-visual','apply-profile'].includes(accepted)?'visual':null;
+  syncDraftControls(domains.filter(d=>d===acceptedDomain||before[d]!==JSON.stringify(drafts.value(d))));
+  editor?.setPresets?.(controller.current.material_presets||{});
+  render();
+ }
  function navigate(page){
   const scroll=$('page-scroll');positions.set(navigation.page,{...positions.get(navigation.page),top:scroll.scrollTop||0});navigation.go(page);
   document.querySelectorAll('[data-page]').forEach(node=>{const active=node.dataset.page===(visualPages.has(page)?'visual-editor':page);node.hidden=!active;node.inert=!active;});
@@ -43,7 +54,11 @@
   $('material-readback').textContent=`Applied material: ${(material.template||'Unnamed preset').replaceAll('-',' ')}${material.modified?' (modified)':''} · ${blend} · opacity ${transparency.opacity} · output alpha ${transparency.output_alpha_scale} · depth suppression ${transparency.depth_suppression_strength} · RGB/alpha ${transparency.rgb_alpha_coupling} · facing attenuation ${color.facing_attenuation_strength}.${draftContext}`;
  }
  function render(){
-  const state=controller.current,available=!joining&&controller.ready,activeDomain=domain(),inputConflict=hasDraft()&&drafts.conflict('inputs'),visualConflict=hasDraft()&&drafts.conflict('visual');
+  const state=controller.current,canApply=!joining&&controller.ready;
+  // An ordinary poll holds the command gate until the revision is verified.
+  // Keep the current editors usable so that hold does not dismiss a native picker.
+  const available=canApply||(!joining&&!controller.pending&&reading?.generation===controller.generation&&reading.keepEditors);
+  const activeDomain=domain(),inputConflict=hasDraft()&&drafts.conflict('inputs'),visualConflict=hasDraft()&&drafts.conflict('visual');
   $('inputs-empty').hidden=available;$('inputs-empty-message').textContent=state?'Your edits are kept while this page is open. Reconnect in Setup to make changes.':'Connect a showcase headset in Setup to read and edit its inputs.';
   $('inputs-form').hidden=!state;$('input-tools').hidden=!state;
   $('visual-empty').hidden=available&&!!editor;$('visual-empty-message').textContent=!state?'Connect a showcase headset in Setup to view and edit its visuals.':!available?'Your edits are kept while this page is open. Reconnect in Setup to make changes.':'Loading visual controls. Please keep this page open.';$('visual-connect').hidden=available;$('visual-form').hidden=!editor;
@@ -53,18 +68,18 @@
   fields.namedItem('breath_mapping').disabled=!available||inputConflict||automatic;
   $('mapping-row').hidden=automatic;$('automatic-help').hidden=!automatic;$('bpm-row').hidden=fields.namedItem('heartbeat_source').value!=='synthetic';
   $('reload-settings').disabled=!controller.gateway||!!joining;$('disconnect').disabled=!controller.gateway&&!joining;
-  $('connection-status').textContent=joining?'Connecting…':controller.ready?'Connected to showcase':controller.gateway?(controller.pending?'Checking your last change…':'Waiting for current headset state'):(controller.pending?'Disconnected · last change not confirmed':'Disconnected');
+  $('connection-status').textContent=joining?'Connecting…':available?'Connected to showcase':controller.gateway?(controller.pending?'Checking your last change…':'Waiting for current headset state'):(controller.pending?'Disconnected · last change not confirmed':'Disconnected');
   $('headset-context').textContent='Headset '+(boundIdentity?.serial||'identity unavailable');
   const actions=!!activeDomain&&['inputs','visuals',...visualPages].includes(navigation.page);
   $('domain-actions').hidden=!actions;$('apply-draft').textContent=activeDomain==='visual'?'Apply visuals':'Apply inputs';$('apply-draft').setAttribute?.('form',activeDomain==='visual'?'visual-form':'inputs-form');
   $('revert-draft').textContent=activeDomain==='visual'?'Revert visual edits':'Revert input edits';
-  $('apply-draft').disabled=!available||!hasDraft()||drafts.conflict(activeDomain||'inputs');$('revert-draft').disabled=!hasDraft();
+  $('apply-draft').disabled=!canApply||!hasDraft()||drafts.conflict(activeDomain||'inputs');$('revert-draft').disabled=!hasDraft();
   const dirty=hasDraft()?['inputs','visual'].filter(d=>drafts.dirty(d)):[],conflicts=hasDraft()?['inputs','visual'].filter(d=>drafts.conflict(d)):[];
   $('draft-status').textContent=controller.pending?'Waiting for the headset to confirm your change':conflicts.length?'The headset settings changed. Read current settings, then review or revert your edits.':dirty.length?'Unapplied '+dirty.join(' and ')+' edits':state?(state.rendered_visual_revision===state.revision?'Settings applied':'The headset is applying your changes'):'Read current settings to edit.';
   document.querySelectorAll('nav [data-page-link]').forEach(button=>{const primary=button.dataset.pageLink;button.textContent=primary[0].toUpperCase()+primary.slice(1)+(dirty.includes(primary==='visuals'?'visual':primary)?' •':'');});
   if(!state)return;
   const input=state.inputs,availability=state.availability;
-  $('input-context').textContent=`Breath: ${input.breath_source} · Heart: ${input.heartbeat_source}${input.heartbeat_source==='synthetic'?' '+input.synthetic_bpm+' BPM':''}`;
+  $('input-context').textContent=`Applied breathing: ${input.breath_source} · Heart: ${input.heartbeat_source}${input.heartbeat_source==='synthetic'?' '+input.synthetic_bpm+' BPM':''}`;
   const missing=[];if(input.breath_source==='polar-acc'&&availability.breath===false)missing.push('Polar breath unavailable — radius held');if(input.heartbeat_source==='polar'&&availability.heartbeat===false)missing.push('Polar heartbeat unavailable — no real pulses');
   $('availability').textContent=missing.join('. ')||(availability.selected_polar_unavailable?'Selected Polar stream unavailable — check stream readiness':input.breath_source==='automatic'?'Automatic · '+(state.automatic_phase||'phase unavailable'):'Selected breathing input '+(availability.breath===true?'available':'readiness unavailable'));
   $('freshness').textContent=lastSeen?`Last current status ${Math.max(0,Math.floor((Date.now()-lastSeen)/1000))} s ago · revision ${state.revision}`:'';
@@ -88,11 +103,14 @@
  }
  function renderRoster(){const selected=$('roster').value;$('roster').replaceChildren(new Option('Choose a headset',''),...roster.records.map(record=>new Option(record.serial||record.device.slice(0,8),record.device)));$('roster').value=selected;}
  async function refresh(){
-  const generation=controller.generation;if(joining||reading===generation||!controller.gateway)return;reading=generation;
+  const generation=controller.generation;
+  if(joining||reading?.generation===generation||!controller.gateway)return;
+  const read={generation,keepEditors:controller.ready};
+  reading=read;
   const pending=controller.pending;
   try{await controller.refresh();if(generation!==controller.generation||joining)return;lastSeen=Date.now();const accepted=acceptedOperation();observe(accepted);if(pending&&!controller.pending){message(controller.lastReceipt?.status==='rejected'?'The headset rejected your last change. Your edits are preserved.':'Your last change is confirmed. Current settings refreshed.');originalOperation=null;originalId=null;}else if(accepted){originalOperation=null;originalId=null;message('Your change is confirmed in the headset settings.');}return true;}
-  catch(error){if(generation===controller.generation&&!joining){message(error.message);render();}return false;}
-  finally{if(reading===generation)reading=null;}
+  catch(error){read.keepEditors=false;if(generation===controller.generation&&!joining){message(error.message);render();}return false;}
+  finally{if(reading===read)reading=null;}
  }
  async function send(op,payload){
   if(joining||!controller.ready){message('Connect in Setup and read current settings before making changes.');return;}

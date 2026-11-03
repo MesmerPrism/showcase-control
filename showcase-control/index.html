@@ -12,7 +12,7 @@
 <p id="automatic-help" class="hint">4 s inhale · 4 s full hold · 4 s exhale · 4 s empty hold. The headset owns the clock.</p>
 <label id="mapping-row">Breathing mapping<select id="input-breath_mapping" name="breath_mapping"><option value="state">State</option><option value="volume">Volume</option></select></label>
 <label>Heartbeat<select id="input-heartbeat_source" name="heartbeat_source"><option value="synthetic">Synthetic</option><option value="polar">Polar</option><option value="off">Off · static minimum orbit distance</option></select></label>
-<label id="bpm-row">Synthetic rate (BPM)<input type="number" id="input-synthetic_bpm" name="synthetic_bpm" min="30" max="240" step="1" value="60" required></label>
+<label id="bpm-row">Synthetic rate (30–240 BPM)<input type="number" id="input-synthetic_bpm" name="synthetic_bpm" min="30" max="240" step="any" value="60" required></label>
 <details><summary>Advanced input mapping</summary><label>Controller projection · controller only<select id="input-controller_projection" name="controller_projection"><option value="dynamic-axis">Dynamic axis</option><option value="fixed-orientation">Fixed orientation</option></select></label><label>Polar projection · Polar ACC only<select id="input-polar_projection" name="polar_projection"><option value="xz">XZ</option><option value="3d">3D</option></select></label><label class="check"><input type="checkbox" id="input-inverted" name="inverted">Invert sensor breathing direction</label></details>
 </fieldset></form><div id="input-tools" class="actions"><button data-page-link="calibration">Calibration</button><button data-page-link="polar">Polar setup</button></div>
 </section>
