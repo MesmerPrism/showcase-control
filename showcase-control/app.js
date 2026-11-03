@@ -100,8 +100,20 @@
   const profile=state.profiles[$('profiles').value];$('selected-profile-summary').textContent=profile?`Radius ${profile.radius.minimum_m}–${profile.radius.maximum_m} m · ${profile.tracer.draw_slots_per_oscillator} copies per particle`:'';
   $('profile-inputs').textContent='Inputs remain: '+input.breath_source+' / '+input.heartbeat_source;
   $('apply-profile').textContent=drafts.dirty('visual')?'Apply selected profile · replace visual edits':'Apply selected profile';
-  $('calibration-start').disabled=!available||input.breath_source==='automatic';$('calibration-fields').disabled=$('calibration-start').disabled;
-  $('calibration-context').textContent=input.breath_source==='automatic'?'Automatic has no sensor calibration. Return to Inputs to select a sensor.':'Applied target: '+input.breath_source+' · '+input.breath_mapping+'. Follow the calibration instructions on the headset.';
+  const calibrationUnavailable=input.breath_source==='automatic'?'Automatic breathing has no sensor calibration.':
+   input.breath_source==='controller'&&input.breath_mapping==='state'&&input.controller_projection==='fixed-orientation'?'Controller State with Fixed orientation has no calibration.':'';
+  $('calibration-fields').disabled=!available||!!calibrationUnavailable;
+  $('calibration-fields').hidden=!!calibrationUnavailable;
+  $('calibration-context').textContent=calibrationUnavailable||('Applied target: '+input.breath_source+' · '+input.breath_mapping+'. Follow the calibration instructions on the headset.');
+  const calibration=state.calibration,progress=$('calibration-progress'),calibrationStatus=$('calibration-status');
+  const target=calibration?.target_frames,accepted=calibration?.accepted_frames;
+  const hasProgress=Number.isSafeInteger(target)&&target>0&&Number.isSafeInteger(accepted)&&accepted>=0;
+  progress.hidden=!!calibrationUnavailable||!hasProgress;
+  if(hasProgress){progress.max=target;progress.value=accepted;}
+  calibrationStatus.hidden=!!calibrationUnavailable;
+  const status=typeof calibration?.lifecycle==='string'?calibration.lifecycle.replace(/[-_]/g,' '):'Calibration status unavailable';
+  const detail=status+(hasProgress?' · '+accepted+' / '+target+' samples':'')+(typeof calibration?.failure==='string'&&calibration.failure?' · '+calibration.failure:'');
+  if(calibrationStatus.textContent!==detail)calibrationStatus.textContent=detail;
   $('polar-use').textContent='Used for: '+([input.breath_source==='polar-acc'?'breathing':'',input.heartbeat_source==='polar'?'heartbeat':''].filter(Boolean).join(' and ')||'neither selected input');
   const polar=state.polar_setup;
   $('polar-status').textContent=polar?`Permission: ${polar.p?'granted':'needed on headset'} · Bluetooth: ${polar.b?'on':'off'} · ${polar.c?'connected':'disconnected'} · ACC ${polar.a?'fresh':'unavailable'} · RR ${availability.heartbeat===true&&input.heartbeat_source==='polar'?'fresh':'freshness unavailable'}${polar.sc?' · scanning':''}`:'Polar setup status unavailable.';
