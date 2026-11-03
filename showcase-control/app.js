@@ -5,6 +5,8 @@
  let schema,editor,lastSeen=0,reading=null,joining=null,expected=null,wanted=false,lastRejoin=0,boundIdentity=null,confirmation=null,originalOperation=null,originalId=null;
  let storage;try{storage=localStorage;}catch(_){}
  const roster=new ShowcaseDiscovery.Roster(storage),discovery=new ShowcaseDiscovery.Discovery();
+ const pickerFocused=()=>document.activeElement?.tagName==='SELECT';
+ let deferredRead=null;
  const controller=new ShowcaseController.Controller({changed:render});
  const titles={inputs:'Inputs',polar:'Inputs / Polar',calibration:'Inputs / Calibration',visuals:'Visuals',profiles:'Profiles',setup:'Setup',...Object.fromEntries(ShowcaseForms.categories.map(c=>[c.id,'Visuals / '+c.title]))};
  const visualPages=new Set(ShowcaseForms.categories.map(c=>c.id));
@@ -54,6 +56,7 @@
   $('material-readback').textContent=`Applied material: ${(material.template||'Unnamed preset').replaceAll('-',' ')}${material.modified?' (modified)':''} · ${blend} · opacity ${transparency.opacity} · output alpha ${transparency.output_alpha_scale} · depth suppression ${transparency.depth_suppression_strength} · RGB/alpha ${transparency.rgb_alpha_coupling} · facing attenuation ${color.facing_attenuation_strength}.${draftContext}`;
  }
  function render(){
+  if(pickerFocused()&&(reading?.automatic||deferredRead===controller.generation))return;
   const state=controller.current,canApply=!joining&&controller.ready;
   // An ordinary poll holds the command gate until the revision is verified.
   // Keep the current editors usable so that hold does not dismiss a native picker.
@@ -102,19 +105,35 @@
 
  }
  function renderRoster(){const selected=$('roster').value;$('roster').replaceChildren(new Option('Choose a headset',''),...roster.records.map(record=>new Option(record.serial||record.device.slice(0,8),record.device)));$('roster').value=selected;}
- async function refresh(){
+ async function refresh(automatic=false){
   const generation=controller.generation;
   if(joining||reading?.generation===generation||!controller.gateway)return;
-  const read={generation,keepEditors:controller.ready};
+  const read={generation,keepEditors:controller.ready,automatic:automatic&&!controller.pending};
   reading=read;
   const pending=controller.pending;
-  try{await controller.refresh();if(generation!==controller.generation||joining)return;lastSeen=Date.now();const accepted=acceptedOperation();observe(accepted);if(pending&&!controller.pending){message(controller.lastReceipt?.status==='rejected'?'The headset rejected your last change. Your edits are preserved.':'Your last change is confirmed. Current settings refreshed.');originalOperation=null;originalId=null;}else if(accepted){originalOperation=null;originalId=null;message('Your change is confirmed in the headset settings.');}return true;}
-  catch(error){read.keepEditors=false;if(generation===controller.generation&&!joining){message(error.message);render();}return false;}
+  try{await controller.refresh();if(generation!==controller.generation||joining)return;lastSeen=Date.now();
+   if(read.automatic&&pickerFocused()){deferredRead=generation;return true;}
+   deferredRead=null;
+   const accepted=acceptedOperation();observe(accepted);if(pending&&!controller.pending){message(controller.lastReceipt?.status==='rejected'?'The headset rejected your last change. Your edits are preserved.':'Your last change is confirmed. Current settings refreshed.');originalOperation=null;originalId=null;}else if(accepted){originalOperation=null;originalId=null;message('Your change is confirmed in the headset settings.');}return true;}
+  catch(error){
+   read.keepEditors=false;
+   if(generation===controller.generation&&!joining){
+    if(read.automatic&&pickerFocused())deferredRead=generation;
+    else{message(error.message);render();}
+   }
+   return false;
+  }
   finally{if(reading===read)reading=null;}
  }
  async function send(op,payload){
   if(joining||!controller.ready){message('Connect in Setup and read current settings before making changes.');return;}
-  const d=op==='set-inputs'?'inputs':['apply-visual','save-profile'].includes(op)?'visual':null;
+  if(deferredRead===controller.generation){
+   deferredRead=null;
+   observe();
+   message('Headset settings refreshed. Review your selection and apply again.');
+   return;
+  }
+  const d=op==='set-inputs' ?'inputs':['apply-visual','save-profile'].includes(op)?'visual':null;
   if(d&&drafts.conflict(d)){message('The headset settings changed while you were editing. Read current settings, then review or revert your edits.');return;}
   const generation=controller.generation;originalOperation=op;message('Waiting for the headset to confirm your change…');
   try{const sending=controller.send(op,payload);originalId=controller.pending?.id;await sending;if(generation!==controller.generation||joining)return;lastSeen=Date.now();observe(op);originalOperation=null;originalId=null;message(op==='save-profile'?'Visual draft saved. It has not been applied.':'Your change was accepted. Current settings refreshed.');}
@@ -148,8 +167,23 @@
  $('delete-profile').addEventListener('click',()=>requestProfile('delete-profile',{name:$('profiles').value}));$('profiles').addEventListener('change',()=>{clearConfirmation();render();});
  $('save-profile').addEventListener('click',()=>{try{const payload={name:$('profile-name').value.trim(),visual:P.visual(editor.value())};if(Object.hasOwn(controller.current.profiles,payload.name))requestProfile('save-profile',payload);else send('save-profile',payload);}catch(error){message(error.message);}});
  $('confirm-profile').addEventListener('click',()=>{if(!confirmation)return;const {op,payload}=confirmation;clearConfirmation();send(op,payload);});$('cancel-profile').addEventListener('click',clearConfirmation);
- function recover(){const gateway=controller.gateway;if(wanted&&gateway?.retired&&['transient','rejoin-needed'].includes(gateway.retirementError?.kind)&&expected&&!joining&&Date.now()-lastRejoin>6000){lastRejoin=Date.now();connect($('address').value.trim(),{device:expected.device,serial:expected.serial});}else refresh();}
- document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')recover();});setInterval(()=>{if(document.visibilityState==='visible'&&wanted){recover();render();}},3000);
+ function recover(){const gateway=controller.gateway;if(wanted&&gateway?.retired&&['transient','rejoin-needed'].includes(gateway.retirementError?.kind)&&expected&&!joining&&Date.now()-lastRejoin>6000){lastRejoin=Date.now();connect($('address').value.trim(),{device:expected.device,serial:expected.serial});}else refresh(true);}
+ function poll(){
+  if(document.visibilityState!=='visible'||!wanted||pickerFocused())return;
+  if(deferredRead===controller.generation){
+   deferredRead=null;
+   if(controller.ready)observe();
+  }
+  recover();
+ }
+ document.addEventListener('visibilitychange',poll);
+ document.addEventListener('focusout',event=>{
+  if(event.target?.tagName==='SELECT')setTimeout(poll,0);
+ });
+ document.addEventListener('change',event=>{
+  if(event.target?.tagName==='SELECT')event.target.blur();
+ });
+ setInterval(poll,3000);
  Promise.all(['visual-schema.json','default-visual.json'].map(path=>fetch(path,{cache:'no-cache'}).then(r=>{if(!r.ok)throw Error('Offline shell incomplete');return r.json();}))).then(([definition])=>{schema=definition;P.configure(schema);if(hasDraft())syncDraftControls();render();}).catch(error=>message(error.message));
  if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(async registration=>{const active=(await navigator.serviceWorker.ready).active,channel=new MessageChannel();const ready=await new Promise(resolve=>{const timer=setTimeout(()=>resolve(false),3000);channel.port1.onmessage=({data})=>{clearTimeout(timer);resolve(data?.ready===true);};active.postMessage({type:'CHECK_SHOWCASE_SHELL'},[channel.port2]);});channel.port1.close();$('offline-status').textContent=ready?'Offline shell ready. Headset control still needs local Wi-Fi.':'Offline shell incomplete. Keep internet available and reopen this page.';if(registration.waiting)$('offline-status').textContent+=' An update is ready; close all showcase windows to apply it.';}).catch(()=>{$('offline-status').textContent='Offline shell unavailable.';});
  const viewport=globalThis.visualViewport;if(viewport){const fit=()=>document.documentElement.style.setProperty('--app-height',viewport.height+'px');viewport.addEventListener('resize',fit);fit();}
