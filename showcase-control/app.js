@@ -81,6 +81,7 @@
     option.disabled=!polarDynamic;
     option.textContent=polarDynamic?label:label+' (Polar State only)';
   }
+  $('polar-adaptive-help').hidden=!(polarDynamic&&fields.namedItem('polar_projection').value==='adaptive-tilt');
   fields.namedItem('breath_mapping').disabled=!available||savingInput||automatic;
   $('mapping-row').hidden=automatic;$('automatic-help').hidden=!automatic;$('bpm-row').hidden=fields.namedItem('heartbeat_source').value!=='synthetic';
   $('reload-settings').disabled=!controller.gateway||!!joining;$('disconnect').disabled=!controller.gateway&&!joining;

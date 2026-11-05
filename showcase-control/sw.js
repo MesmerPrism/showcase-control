@@ -1,6 +1,6 @@
 'use strict';
 // Finite same-origin static shell only. No automatic skipWaiting during commands.
-const CACHE='viscereality-showcase-shell-v2-64fe88b74b4c6831';
+const CACHE='viscereality-showcase-shell-v2-6df83fa288a7fedd';
 const SHELL=['./','index.html','styles.css','app.js','ui-model.js','forms.js','protocol.js','validation.js','controller.js','join.js','transport-neutral.js','discovery.js','visual-schema.json','default-visual.json','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png','icons/apple-touch-icon.png'];
 const URLS=new Set(SHELL.map(path=>new URL(path,self.location.href).href));
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL.map(path=>new Request(new URL(path,self.location.href),{cache:'reload'}))))));
