@@ -22,7 +22,7 @@
   function allowsPolarDynamic(value){return value.breath_source==='polar-acc'&&value.breath_mapping==='state';}
   function inputs(value){
     const keys=['breath_source','breath_mapping','heartbeat_source','synthetic_bpm','controller_projection','polar_projection','inverted'];
-    if(!object(value)||Object.keys(value).length!==keys.length||keys.some(k=>!Object.hasOwn(value,k))||!['controller','polar-acc','automatic'].includes(value.breath_source)||!['state','volume'].includes(value.breath_mapping)||!['off','polar','synthetic'].includes(value.heartbeat_source)||!Number.isFinite(value.synthetic_bpm)||value.synthetic_bpm<30||value.synthetic_bpm>240||!['dynamic-axis','fixed-orientation'].includes(value.controller_projection)||!['xz','3d','dynamic-axis','tilt-classifier'].includes(value.polar_projection)||typeof value.inverted!=='boolean')throw Error('Complete valid input settings required');
+    if(!object(value)||Object.keys(value).length!==keys.length||keys.some(k=>!Object.hasOwn(value,k))||!['controller','polar-acc','automatic'].includes(value.breath_source)||!['state','volume'].includes(value.breath_mapping)||!['off','polar','synthetic'].includes(value.heartbeat_source)||!Number.isFinite(value.synthetic_bpm)||value.synthetic_bpm<30||value.synthetic_bpm>240||!['dynamic-axis','fixed-orientation'].includes(value.controller_projection)||!['xz','3d','dynamic-axis','tilt-classifier','adaptive-tilt'].includes(value.polar_projection)||typeof value.inverted!=='boolean')throw Error('Complete valid input settings required');
     return clone(value);
   }
   function status(value){
