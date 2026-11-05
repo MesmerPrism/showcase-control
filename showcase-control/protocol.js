@@ -19,9 +19,10 @@
     if(value.orbit_distance&&Object.keys(value.orbit_distance).some(k=>!['scale_with_particle_size','reference_radius_m'].includes(k)))throw Error('Heartbeat input is separate from visual profiles');
     return clone(bounded(value));
   }
+  function allowsPolarDynamic(value){return value.breath_source==='polar-acc'&&value.breath_mapping==='state';}
   function inputs(value){
     const keys=['breath_source','breath_mapping','heartbeat_source','synthetic_bpm','controller_projection','polar_projection','inverted'];
-    if(!object(value)||Object.keys(value).length!==keys.length||keys.some(k=>!Object.hasOwn(value,k))||!['controller','polar-acc','automatic'].includes(value.breath_source)||!['state','volume'].includes(value.breath_mapping)||!['off','polar','synthetic'].includes(value.heartbeat_source)||!Number.isFinite(value.synthetic_bpm)||value.synthetic_bpm<30||value.synthetic_bpm>240||!['dynamic-axis','fixed-orientation'].includes(value.controller_projection)||!['xz','3d'].includes(value.polar_projection)||typeof value.inverted!=='boolean')throw Error('Complete valid input settings required');
+    if(!object(value)||Object.keys(value).length!==keys.length||keys.some(k=>!Object.hasOwn(value,k))||!['controller','polar-acc','automatic'].includes(value.breath_source)||!['state','volume'].includes(value.breath_mapping)||!['off','polar','synthetic'].includes(value.heartbeat_source)||!Number.isFinite(value.synthetic_bpm)||value.synthetic_bpm<30||value.synthetic_bpm>240||!['dynamic-axis','fixed-orientation'].includes(value.controller_projection)||!['xz','3d','dynamic-axis','tilt-classifier'].includes(value.polar_projection)||typeof value.inverted!=='boolean')throw Error('Complete valid input settings required');
     return clone(value);
   }
   function status(value){
@@ -52,6 +53,6 @@
       this.current=next;return next;
     }
   }
-  const api={PRODUCT,PREFIX,configure,visual,inputs,status,command,Snapshots};
+  const api={PRODUCT,PREFIX,configure,visual,inputs,allowsPolarDynamic,status,command,Snapshots};
   if(typeof module!=='undefined')module.exports=api;else root.ShowcaseProtocol=api;
 })(globalThis);

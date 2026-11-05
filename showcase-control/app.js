@@ -74,6 +74,13 @@
   renderSubmittedObservations(state);
   $('inputs-fields').disabled=!available||savingInput;$('visual-fields').disabled=!available||visualConflict;$('profile-fields').disabled=!available;$('sensor-fields').disabled=!available;$('calibration-fields').disabled=!available;
   const fields=$('inputs-form').elements,automatic=fields.namedItem('breath_source').value==='automatic';
+  const polarDynamic=P.allowsPolarDynamic({breath_source:fields.namedItem('breath_source').value,breath_mapping:fields.namedItem('breath_mapping').value});
+  for(const [value,label] of [['dynamic-axis','Dynamic axis'],['tilt-classifier','Three-axis tilt']]){
+    const option=$('polar-'+value);
+    option.hidden=!polarDynamic&&fields.namedItem('polar_projection').value!==value;
+    option.disabled=!polarDynamic;
+    option.textContent=polarDynamic?label:label+' (Polar State only)';
+  }
   fields.namedItem('breath_mapping').disabled=!available||savingInput||automatic;
   $('mapping-row').hidden=automatic;$('automatic-help').hidden=!automatic;$('bpm-row').hidden=fields.namedItem('heartbeat_source').value!=='synthetic';
   $('reload-settings').disabled=!controller.gateway||!!joining;$('disconnect').disabled=!controller.gateway&&!joining;
@@ -102,7 +109,9 @@
   $('apply-profile').textContent=drafts.dirty('visual')?'Apply selected profile · replace visual edits':'Apply selected profile';
   const calibrationUnavailable=input.breath_source==='automatic'?'Automatic breathing has no sensor calibration.':
    input.breath_source==='controller'&&input.breath_mapping==='state'?(input.controller_projection==='fixed-orientation'?
-    'Controller State uses Fixed orientation without calibration.':'Controller State learns the movement direction continuously.'):'';
+    'Controller State uses Fixed orientation without calibration.':'Controller State learns the movement direction continuously.'):
+   P.allowsPolarDynamic(input)&&input.polar_projection==='dynamic-axis'?'Polar State with Dynamic axis learns the movement direction continuously.':
+   P.allowsPolarDynamic(input)&&input.polar_projection==='tilt-classifier'?'Polar State with Three-axis tilt uses no sensor calibration.':'';
   $('calibration-fields').disabled=!available||!!calibrationUnavailable;
   $('calibration-fields').hidden=!!calibrationUnavailable;
   $('calibration-context').textContent=calibrationUnavailable||('Applied target: '+input.breath_source+' · '+input.breath_mapping+'. Follow the calibration instructions on the headset.');
